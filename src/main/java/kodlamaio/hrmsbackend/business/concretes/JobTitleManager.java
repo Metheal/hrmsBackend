@@ -1,6 +1,8 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
 import kodlamaio.hrmsbackend.business.abstracts.JobTitleService;
+import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
+import kodlamaio.hrmsbackend.core.utilities.results.SuccessDataResult;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.JobTitleDao;
 import kodlamaio.hrmsbackend.entities.concretes.JobTitle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ public class JobTitleManager implements JobTitleService {
     }
 
     @Override
-    public List<JobTitle> getAll() {
-        return this.jobTitleDao.findAll();
+    public DataResult<List<JobTitle>> getAll() {
+        return new SuccessDataResult<>(this.jobTitleDao.findAll(), "Is pozisyonlari listelendi");
     }
 }
