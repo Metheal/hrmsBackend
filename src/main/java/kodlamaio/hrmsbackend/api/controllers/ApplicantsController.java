@@ -19,7 +19,7 @@ public class ApplicantsController {
         this.applicantService = applicantService;
     }
 
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public DataResult<List<Applicant>> getAll() {
         return this.applicantService.getAll();
     }

@@ -20,13 +20,13 @@ public class UserManager implements UserService {
     }
 
     @Override
-    public DataResult<List<User>> getall() {
+    public DataResult<List<User>> getAll() {
         return new SuccessDataResult<>(this.userDao.findAll(), "Tum kullanicilar listelendi");
     }
 
     @Override
     public DataResult<User> getById(int id) {
-        return new SuccessDataResult<>(this.userDao.findById(id), "Kullanici getirildi");
+        return new SuccessDataResult<>(this.userDao.findById(id).get(), "Kullanici getirildi");
     }
 
     @Override
@@ -62,7 +62,7 @@ public class UserManager implements UserService {
     }
 
     private Result emailUnique(User user) {
-        var result = this.userDao.findByEmail(user.getEmail());
+        var result = this.userDao.getByEmail(user.getEmail());
         if (result != null) {
             return new ErrorResult("Bu email adresiyle daha once kayit olunmus");
         }

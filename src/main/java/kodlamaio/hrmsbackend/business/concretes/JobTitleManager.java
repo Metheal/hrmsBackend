@@ -35,7 +35,7 @@ public class JobTitleManager implements JobTitleService {
     }
 
     private Result checkIfJobTitleExists(JobTitle jobTitle) {
-        var result = this.jobTitleDao.findJobTitleByName(jobTitle.getName());
+        var result = this.jobTitleDao.getByName(jobTitle.getName());
         if (result != null) {
             return new ErrorResult("Bu isme sahip is pozisyonu mevcut");
         }

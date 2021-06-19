@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/jobtitles")
+@RequestMapping("/api/jobTitles")
 public class JobTitlesController {
 
     private JobTitleService jobTitleService;
@@ -20,7 +20,7 @@ public class JobTitlesController {
         this.jobTitleService = jobTitleService;
     }
 
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public DataResult<List<JobTitle>> getAll() {
         return this.jobTitleService.getAll();
     }

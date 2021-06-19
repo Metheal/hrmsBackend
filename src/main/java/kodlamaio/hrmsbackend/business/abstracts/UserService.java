@@ -7,7 +7,7 @@ import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import java.util.List;
 
 public interface UserService {
-    DataResult<List<User>> getall();
+    DataResult<List<User>> getAll();
 
     DataResult<User> getById(int id);
 

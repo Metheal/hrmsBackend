@@ -65,7 +65,7 @@ public class ApplicantManager implements ApplicantService {
     }
 
     private Result nationalIdUnique(Applicant applicant) {
-        var result = applicantDao.findByNationalId(applicant.getNationalId());
+        var result = applicantDao.getByNationalId(applicant.getNationalId());
         if (result != null) {
             return new ErrorResult("Bu kimlik numarasiyla uye olunmus");
         }

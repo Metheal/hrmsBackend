@@ -10,4 +10,6 @@ public interface EmployerService {
     DataResult<List<Employer>> getAll();
 
     Result add(Employer employer) throws InterruptedException;
+
+    Result setActive(Employer employer, boolean active);
 }

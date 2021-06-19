@@ -51,7 +51,7 @@ public class VerificationCodeManager implements VerificationCodeService {
 
     @Override
     public Result verifyApplicant(User user, String code) {
-        var verificationCode = this.verificationCodeDao.findVerificationCodeByUserId(user.getId());
+        var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(user.getId());
         if (verificationCode == null || !verificationCode.getCode().equals(code)) {
             return new ErrorResult("Dogrulama basarisiz");
         }
@@ -65,7 +65,7 @@ public class VerificationCodeManager implements VerificationCodeService {
 
     @Override
     public Result verifyEmployer(User user, String code) {
-        var verificationCode = this.verificationCodeDao.findVerificationCodeByUserId(user.getId());
+        var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(user.getId());
         if (verificationCode == null || !verificationCode.getCode().equals(code)) {
             return new ErrorResult("Dogrulama basarisiz");
         }
@@ -78,7 +78,7 @@ public class VerificationCodeManager implements VerificationCodeService {
 
     @Override
     public Result deleteCode(String code) {
-        var verificationCode = this.verificationCodeDao.findVerificationCodeByCode(code);
+        var verificationCode = this.verificationCodeDao.getVerificationCodeByCode(code);
         this.verificationCodeDao.delete(verificationCode);
         return new SuccessResult("Dogrulama kodu kaydi silindi");
     }

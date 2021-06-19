@@ -19,9 +19,14 @@ public class UsersController {
         this.userService = userService;
     }
 
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public DataResult<List<User>> getAll() {
-        return this.userService.getall();
+        return this.userService.getAll();
+    }
+
+    @GetMapping("/getById")
+    public DataResult<User> getById(@RequestParam int id) {
+        return this.userService.getById(id);
     }
 
     @PostMapping("/add")

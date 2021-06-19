@@ -54,6 +54,14 @@ public class EmployerManager implements EmployerService {
         return new SuccessResult("Isveren kaydi olusturuldu");
     }
 
+    @Override
+    public Result setActive(Employer employer, boolean active) {
+        var employerToUpdate = this.employerDao.getById(employer.getId());
+        employerToUpdate.getUser().setActive(active);
+        employerDao.save(employerToUpdate);
+        return new SuccessResult("Basariyla guncellendi");
+    }
+
     private Result checkIfEmailMatchesDomain(Employer employer) {
         var domain = employer.getUser().getEmail().split("@")[1];
         var result = employer.getWebsiteUrl().equals(domain);
@@ -84,4 +92,6 @@ public class EmployerManager implements EmployerService {
         this.emailService.sendEmail(user.getEmail(), "E-posta adresinizi dogrulamak icin kodu ilgili yere girin: "
                 + this.verificationCodeService.createCode(user).getData());
     }
+
+
 }

@@ -17,7 +17,7 @@ public class EmployersController {
         this.employerService = employerService;
     }
 
-    @GetMapping("/getall")
+    @GetMapping("/getAll")
     public DataResult<List<Employer>> getAll() {
         return this.employerService.getAll();
     }
@@ -25,5 +25,10 @@ public class EmployersController {
     @PostMapping("/add")
     public Result add(@RequestBody Employer employer) throws InterruptedException {
         return this.employerService.add(employer);
+    }
+
+    @PostMapping("/setActive")
+    public Result setActive(@RequestBody Employer employer, @RequestParam boolean active) {
+        return this.employerService.setActive(employer, active);
     }
 }
