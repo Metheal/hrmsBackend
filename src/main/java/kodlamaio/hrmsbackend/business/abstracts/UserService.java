@@ -1,6 +1,6 @@
 package kodlamaio.hrmsbackend.business.abstracts;
 
-import kodlamaio.hrmsbackend.core.entities.concretes.User;
+import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 
@@ -10,6 +10,8 @@ public interface UserService {
     DataResult<List<User>> getAll();
 
     DataResult<User> getById(int id);
+
+    DataResult<User> getByEmail(String email);
 
     Result add(User user) throws InterruptedException;
 

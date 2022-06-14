@@ -16,7 +16,7 @@ public interface JobPostingService {
 
     DataResult<List<JobPosting>> getAllByActiveIsTrue(boolean ascending);
 
-    DataResult<List<JobPosting>> getAllByActiveAnAndEmployer_Id(int id);
+    DataResult<List<JobPosting>> getAllByActiveAnAndCorporate_Id(int id);
 
     DataResult<JobPosting> getById(int id);
 

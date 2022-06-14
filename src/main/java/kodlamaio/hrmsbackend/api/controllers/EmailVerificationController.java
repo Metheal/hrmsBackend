@@ -1,6 +1,6 @@
 package kodlamaio.hrmsbackend.api.controllers;
 
-import kodlamaio.hrmsbackend.core.entities.concretes.User;
+import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +21,6 @@ public class EmailVerificationController {
 
     @PostMapping("/verifyEmployer")
     public Result verifyEmployer(@RequestBody User user, @RequestParam String code) {
-        return this.verificationCodeService.verifyEmployer(user, code);
+        return this.verificationCodeService.verifyCorporate(user, code);
     }
 }

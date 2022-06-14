@@ -1,17 +1,16 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
-import kodlamaio.hrmsbackend.business.abstracts.ApplicantCheckService;
-import kodlamaio.hrmsbackend.business.abstracts.ApplicantService;
-import kodlamaio.hrmsbackend.business.abstracts.EmailService;
-import kodlamaio.hrmsbackend.business.abstracts.UserService;
-import kodlamaio.hrmsbackend.core.entities.concretes.User;
+import kodlamaio.hrmsbackend.business.abstracts.*;
+import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
-import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.ApplicantDao;
 import kodlamaio.hrmsbackend.entities.concretes.Applicant;
+import kodlamaio.hrmsbackend.entities.concretes.ProfilePicture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -21,15 +20,18 @@ public class ApplicantManager implements ApplicantService {
     private ApplicantCheckService applicantCheckService;
     private VerificationCodeService verificationCodeService;
     private EmailService emailService;
+    private ProfilePictureService profilePictureService;
 
     @Autowired
     public ApplicantManager(ApplicantDao applicantDao, UserService userService, ApplicantCheckService applicantCheckService,
-                            VerificationCodeService verificationCodeService, EmailService emailService) {
+                            VerificationCodeService verificationCodeService, EmailService emailService,
+                            ProfilePictureService profilePictureService) {
         this.applicantDao = applicantDao;
         this.userService = userService;
         this.applicantCheckService = applicantCheckService;
         this.verificationCodeService = verificationCodeService;
         this.emailService = emailService;
+        this.profilePictureService = profilePictureService;
     }
 
     @Override
@@ -38,11 +40,23 @@ public class ApplicantManager implements ApplicantService {
     }
 
     @Override
-    public Result add(Applicant applicant) throws Exception {
-        var checkIfFieldsAreEmpty = checkIfFieldsAreEmpty(applicant);
-        if (!checkIfFieldsAreEmpty.isSuccess()) {
-            return new ErrorResult(checkIfFieldsAreEmpty.getMessage());
-        }
+    public DataResult<Applicant> getById(int id) {
+        return new SuccessDataResult<>(this.applicantDao.getById(id), "Is arayan getirildi");
+    }
+
+    @Override
+    public DataResult<Applicant> getByUserId(int id) {
+        return new SuccessDataResult<>(this.applicantDao.getByUser_Id(id), "Is arayan kullanici Id'sine gore getirildi");
+    }
+
+    @Override
+    public DataResult<Applicant> getByUserEmail(String email) {
+        return new SuccessDataResult<>(this.applicantDao.getByUser_Email(email), "Is arayan kullanici emailine gore getirildi");
+    }
+
+    @Override
+    public Result add(Applicant applicant, MultipartFile file) throws Exception {
+
         var nationalityIdUnique = nationalIdUnique(applicant);
         if (!nationalityIdUnique.isSuccess()) {
             return new ErrorResult(nationalityIdUnique.getMessage());
@@ -55,9 +69,20 @@ public class ApplicantManager implements ApplicantService {
         if (!registerUser.isSuccess()) {
             return new ErrorResult(registerUser.getMessage());
         }
-        this.applicantDao.save(applicant);
-        sendConfirmationEmail(applicant.getUser());
+
+        var result =  this.applicantDao.save(applicant);
+
+        if (file != null) {
+            uploadProfilePicture(result, file);
+        }
+        sendConfirmationEmail(result.getUser());
         return new SuccessResult("Is arayan kaydi olusturuldu");
+    }
+
+    private Result uploadProfilePicture(Applicant applicant, MultipartFile file) throws IOException {
+        var result = new ProfilePicture();
+        result.setApplicant(applicant);
+        return this.profilePictureService.add(result, file);
     }
 
     private Result registerUser(Applicant applicant) throws InterruptedException {
@@ -76,19 +101,6 @@ public class ApplicantManager implements ApplicantService {
         var result = this.applicantCheckService.checkIfCitizen(applicant);
         if (!result) {
             return new ErrorResult("Girilen kimlik bilgileri gecerli degil");
-        }
-        return new SuccessResult();
-    }
-
-    private Result checkIfFieldsAreEmpty(Applicant applicant) {
-        if (applicant.getNationalId().isEmpty()) {
-            return new ErrorResult("TC Kimlik numarasi bos birakilamaz");
-        } else if (applicant.getDateOfBirth().toString().isEmpty()) {
-            return new ErrorResult("Dogum tarihi bos birakilamaz");
-        } else if (applicant.getFirstName().isEmpty()) {
-            return new ErrorResult("Isim bos birakilamaz");
-        } else if (applicant.getLastName().isEmpty()) {
-            return new ErrorResult("Soyisim bos birakilamaz");
         }
         return new SuccessResult();
     }

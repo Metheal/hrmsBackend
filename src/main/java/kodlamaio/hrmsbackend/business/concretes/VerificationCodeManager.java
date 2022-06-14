@@ -1,7 +1,7 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
 import kodlamaio.hrmsbackend.business.abstracts.UserService;
-import kodlamaio.hrmsbackend.core.entities.concretes.User;
+import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
 import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.VerificationCodeDao;
@@ -64,7 +64,7 @@ public class VerificationCodeManager implements VerificationCodeService {
     }
 
     @Override
-    public Result verifyEmployer(User user, String code) {
+    public Result verifyCorporate(User user, String code) {
         var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(user.getId());
         if (verificationCode == null || !verificationCode.getCode().equals(code)) {
             return new ErrorResult("Dogrulama basarisiz");

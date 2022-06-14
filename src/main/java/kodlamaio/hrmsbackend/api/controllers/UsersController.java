@@ -1,12 +1,13 @@
 package kodlamaio.hrmsbackend.api.controllers;
 
 import kodlamaio.hrmsbackend.business.abstracts.UserService;
-import kodlamaio.hrmsbackend.core.entities.concretes.User;
+import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -29,8 +30,13 @@ public class UsersController {
         return this.userService.getById(id);
     }
 
+    @PostMapping("/getByEmail")
+    public DataResult<User> getByEmail(@RequestBody User user) {
+        return this.userService.getByEmail(user.getEmail());
+    }
+
     @PostMapping("/add")
-    public Result add(@RequestBody User user) throws InterruptedException {
+    public Result add(@Valid @RequestBody User user) throws InterruptedException {
         return this.userService.add(user);
     }
 }

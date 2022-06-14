@@ -1,10 +1,13 @@
-package kodlamaio.hrmsbackend.core.entities.concretes;
+package kodlamaio.hrmsbackend.core.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
@@ -20,12 +23,19 @@ public class User {
     private int id;
 
     @Column(name = "email", nullable = false)
+    @Email
+    @NotEmpty
+    @NotNull
     private String email;
 
     @Column(name = "password", nullable = false)
+    @NotEmpty
+    @NotNull
     private String password;
 
     @Transient
+    @NotEmpty
+    @NotNull
     private String passwordConfirmation;
 
     @Column(name = "active", nullable = false)

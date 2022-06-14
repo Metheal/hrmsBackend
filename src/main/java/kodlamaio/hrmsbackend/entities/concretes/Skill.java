@@ -10,16 +10,16 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @Entity
-@Table(name = "cities")
-@AllArgsConstructor
+@Table(name = "skills")
 @NoArgsConstructor
-public class City {
+@AllArgsConstructor
+public class Skill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     @NotEmpty
     @NotNull
     private String name;

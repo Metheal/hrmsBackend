@@ -32,7 +32,7 @@ public class JobPostingsController {
 
     @GetMapping("/getAllByEmployerId")
     public DataResult<List<JobPosting>> getAllByEmployerId(@RequestParam int id) {
-        return this.jobPostingService.getAllByActiveAnAndEmployer_Id(id);
+        return this.jobPostingService.getAllByActiveAnAndCorporate_Id(id);
     }
 
     @GetMapping("/getById")

@@ -52,5 +52,5 @@ public class JobPosting {
 
     @ManyToOne
     @JoinColumn(name = "employer_id", referencedColumnName = "id", nullable = false)
-    private Employer employer;
+    private Corporate corporate;
 }

@@ -69,8 +69,8 @@ public class JobPostingManager implements JobPostingService {
     }
 
     @Override
-    public DataResult<List<JobPosting>> getAllByActiveAnAndEmployer_Id(int id) {
-        return new SuccessDataResult<>(this.jobPostingDao.getAllByActiveAndEmployer_Id(true, id), "Firmaya ait tum ilanlar listelendi");
+    public DataResult<List<JobPosting>> getAllByActiveAnAndCorporate_Id(int id) {
+        return new SuccessDataResult<>(this.jobPostingDao.getAllByActiveAndCorporate_Id(true, id), "Firmaya ait tum ilanlar listelendi");
     }
 
     @Override
