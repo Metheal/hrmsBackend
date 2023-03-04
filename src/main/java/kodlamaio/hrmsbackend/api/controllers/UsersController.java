@@ -11,7 +11,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("api/users")
 public class UsersController {
     private UserService userService;
 
@@ -20,22 +20,22 @@ public class UsersController {
         this.userService = userService;
     }
 
-    @GetMapping("/getAll")
+    @GetMapping
     public DataResult<List<User>> getAll() {
         return this.userService.getAll();
     }
 
-    @GetMapping("/getById")
-    public DataResult<User> getById(@RequestParam int id) {
+    @GetMapping("{id}")
+    public DataResult<User> getById(@PathVariable int id) {
         return this.userService.getById(id);
     }
 
-    @PostMapping("/getByEmail")
+    @PostMapping("getByEmail")
     public DataResult<User> getByEmail(@RequestBody User user) {
         return this.userService.getByEmail(user.getEmail());
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public Result add(@Valid @RequestBody User user) throws InterruptedException {
         return this.userService.add(user);
     }

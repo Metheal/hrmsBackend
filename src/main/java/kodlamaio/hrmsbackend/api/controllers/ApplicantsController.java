@@ -6,7 +6,7 @@ import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.ErrorDataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.Applicant;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
@@ -21,36 +21,34 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/applicants")
+@RequestMapping("api/applicants")
+@AllArgsConstructor
 public class ApplicantsController {
     private ApplicantService applicantService;
 
-    @Autowired
-    public ApplicantsController(ApplicantService applicantService) {
-        this.applicantService = applicantService;
-    }
-
-    @GetMapping("/getAll")
+    @GetMapping
+    @CrossOrigin
     public DataResult<List<Applicant>> getAll() {
         return this.applicantService.getAll();
     }
 
-    @GetMapping("/getById")
-    public DataResult<Applicant> getById(@RequestParam int id) {
+    @GetMapping("{id}}")
+    @CrossOrigin
+    public DataResult<Applicant> getById(@PathVariable int id) {
         return this.applicantService.getById(id);
     }
 
-    @GetMapping("/getByUserId")
+    @GetMapping("getByUserId")
     public DataResult<Applicant> getByUserId(@RequestParam int id) {
         return this.applicantService.getByUserId(id);
     }
 
-    @PostMapping("/getByEmail")
+    @PostMapping("getByEmail")
     public DataResult<Applicant> getByUserEmail(@RequestBody User user) {
         return this.applicantService.getByUserEmail(user.getEmail());
     }
 
-    @PostMapping(value = "/add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public Result add(@Valid @RequestPart("applicant") Applicant applicant, @Nullable @RequestPart("file") MultipartFile file) throws Exception {
         return this.applicantService.add(applicant, file);
     }

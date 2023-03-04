@@ -4,32 +4,29 @@ import kodlamaio.hrmsbackend.business.abstracts.CityService;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.City;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cities")
+@RequestMapping("api/cities")
+@AllArgsConstructor
 public class CitiesController {
     private CityService cityService;
 
-    @Autowired
-    public CitiesController(CityService cityService) {
-        this.cityService = cityService;
-    }
-
-    @GetMapping("/getAll")
+    @GetMapping
+    @CrossOrigin
     public DataResult<List<City>> getAll() {
         return this.cityService.getAll();
     }
 
-    @GetMapping("/getById")
-    public DataResult<City> getById(@RequestParam int id) {
+    @GetMapping("{id}")
+    public DataResult<City> getById(@PathVariable int id) {
         return this.cityService.getById(id);
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public Result add(@RequestBody City city) {
         return this.cityService.add(city);
     }

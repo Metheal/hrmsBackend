@@ -5,27 +5,25 @@ import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.Corporate;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/employers")
+@RequestMapping("api/employers")
+@AllArgsConstructor
 public class CorporatesController {
     private CorporateService corporateService;
 
-    public CorporatesController(CorporateService corporateService) {
-        this.corporateService = corporateService;
-    }
-
-    @GetMapping("/getAll")
+    @GetMapping
     public DataResult<List<Corporate>> getAll() {
         return this.corporateService.getAll();
     }
 
-    @GetMapping("getById")
-    public DataResult<Corporate> getById(@RequestParam int id) {
+    @GetMapping("{id}")
+    public DataResult<Corporate> getById(@PathVariable int id) {
         return this.corporateService.getById(id);
     }
 
@@ -39,7 +37,7 @@ public class CorporatesController {
         return this.corporateService.getByUserEmail(user.getEmail());
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public Result add(@Valid @RequestBody Corporate corporate) throws InterruptedException {
         return this.corporateService.add(corporate);
     }

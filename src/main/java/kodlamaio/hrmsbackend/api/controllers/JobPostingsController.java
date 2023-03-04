@@ -4,23 +4,19 @@ import kodlamaio.hrmsbackend.business.abstracts.JobPostingService;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.JobPosting;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/jobPostings")
+@AllArgsConstructor
 public class JobPostingsController {
-
     private JobPostingService jobPostingService;
 
-    @Autowired
-    public JobPostingsController(JobPostingService jobPostingService) {
-        this.jobPostingService = jobPostingService;
-    }
-
-    @GetMapping("/getAll")
+    @GetMapping
+    @CrossOrigin
     public DataResult<List<JobPosting>> getAll() {
         return this.jobPostingService.getAllByActiveIsTrue();
     }
@@ -35,12 +31,12 @@ public class JobPostingsController {
         return this.jobPostingService.getAllByActiveAnAndCorporate_Id(id);
     }
 
-    @GetMapping("/getById")
-    public DataResult<JobPosting> getById(@RequestParam int id) {
+    @GetMapping("{id}")
+    public DataResult<JobPosting> getById(@PathVariable int id) {
         return this.jobPostingService.getById(id);
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public Result add(@RequestBody JobPosting jobPosting) {
         return this.jobPostingService.add(jobPosting);
     }

@@ -4,38 +4,36 @@ import kodlamaio.hrmsbackend.business.abstracts.ResumeService;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.Resume;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/resumes")
+@RequestMapping("api/resumes")
+@AllArgsConstructor
 public class ResumesController {
     private ResumeService resumeService;
 
-    @Autowired
-    public ResumesController(ResumeService resumeService) {
-        this.resumeService = resumeService;
-    }
-
-    @GetMapping("/getAll")
+    @GetMapping
+    @CrossOrigin
     public DataResult<List<Resume>> getAll() {
         return this.resumeService.getAll();
     }
 
-    @GetMapping("/getAllByApplicant_Id")
+    @GetMapping("getAllByApplicant_Id")
+    @CrossOrigin
     DataResult<List<Resume>> getAllByApplicant_Id(@RequestParam int id) {
         return this.resumeService.getAllByApplicant_Id(id);
     }
 
-    @GetMapping("/getById")
-    DataResult<Resume> getById(@RequestParam int id) {
+    @GetMapping("{id}")
+    DataResult<Resume> getById(@PathVariable int id) {
         return this.resumeService.getById(id);
     }
 
-    @PostMapping("/add")
+    @PostMapping
     Result add(@Valid @RequestBody Resume resume) {
         return this.resumeService.add(resume);
     }
