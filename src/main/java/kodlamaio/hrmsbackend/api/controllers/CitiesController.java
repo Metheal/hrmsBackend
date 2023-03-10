@@ -13,7 +13,7 @@ import java.util.List;
 @RequestMapping("api/cities")
 @AllArgsConstructor
 public class CitiesController {
-    private CityService cityService;
+    private final CityService cityService;
 
     @GetMapping
     @CrossOrigin
@@ -22,11 +22,13 @@ public class CitiesController {
     }
 
     @GetMapping("{id}")
+    @CrossOrigin
     public DataResult<City> getById(@PathVariable int id) {
         return this.cityService.getById(id);
     }
 
     @PostMapping
+    @CrossOrigin
     public Result add(@RequestBody City city) {
         return this.cityService.add(city);
     }

@@ -7,19 +7,15 @@ import kodlamaio.hrmsbackend.core.utilities.results.SuccessDataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.SuccessResult;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.SkillDao;
 import kodlamaio.hrmsbackend.entities.concretes.Skill;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class SkillManager implements SkillService {
     private SkillDao skillDao;
-
-    @Autowired
-    public SkillManager(SkillDao skillDao) {
-        this.skillDao = skillDao;
-    }
 
     @Override
     public DataResult<List<Skill>> getAll() {

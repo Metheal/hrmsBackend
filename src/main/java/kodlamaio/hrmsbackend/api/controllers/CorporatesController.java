@@ -1,7 +1,11 @@
 package kodlamaio.hrmsbackend.api.controllers;
 
 import kodlamaio.hrmsbackend.business.abstracts.CorporateService;
-import kodlamaio.hrmsbackend.core.entities.User;
+import kodlamaio.hrmsbackend.business.requests.CreateCorporateRequest;
+import kodlamaio.hrmsbackend.business.responses.GetAllCorporateResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByEmailCorporateResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdCorporateResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByUserIdCorporateResponse;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.Corporate;
@@ -15,34 +19,40 @@ import java.util.List;
 @RequestMapping("api/employers")
 @AllArgsConstructor
 public class CorporatesController {
-    private CorporateService corporateService;
+    private final CorporateService corporateService;
 
     @GetMapping
-    public DataResult<List<Corporate>> getAll() {
+    @CrossOrigin
+    public DataResult<List<GetAllCorporateResponse>> getAll() {
         return this.corporateService.getAll();
     }
 
     @GetMapping("{id}")
-    public DataResult<Corporate> getById(@PathVariable int id) {
+    @CrossOrigin
+    public DataResult<GetByIdCorporateResponse> getById(@PathVariable int id) {
         return this.corporateService.getById(id);
     }
 
     @GetMapping("getByUserId")
-    public DataResult<Corporate> getByUserId(@RequestParam int id) {
+    @CrossOrigin
+    public DataResult<GetByUserIdCorporateResponse> getByUserId(@RequestParam int id) {
         return this.corporateService.getByUserId(id);
     }
 
-    @PostMapping("getByEmail")
-    public DataResult<Corporate> getByUserEmail(@RequestBody User user) {
-        return this.corporateService.getByUserEmail(user.getEmail());
+    @GetMapping("getByEmail")
+    @CrossOrigin
+    public DataResult<GetByEmailCorporateResponse> getByUserEmail(@RequestParam String email) {
+        return this.corporateService.getByUserEmail(email);
     }
 
     @PostMapping
-    public Result add(@Valid @RequestBody Corporate corporate) throws InterruptedException {
-        return this.corporateService.add(corporate);
+    @CrossOrigin
+    public Result add(@Valid @RequestBody CreateCorporateRequest createCorporateRequest) throws InterruptedException {
+        return this.corporateService.add(createCorporateRequest);
     }
 
-    @PostMapping("/setActive")
+    @PostMapping("setActive")
+    @CrossOrigin
     public Result setActive(@RequestBody Corporate corporate, @RequestParam boolean active) {
         return this.corporateService.setActive(corporate, active);
     }

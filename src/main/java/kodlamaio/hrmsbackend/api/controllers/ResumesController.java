@@ -1,6 +1,9 @@
 package kodlamaio.hrmsbackend.api.controllers;
 
 import kodlamaio.hrmsbackend.business.abstracts.ResumeService;
+import kodlamaio.hrmsbackend.business.responses.GetAllByApplicantIdResumeResponse;
+import kodlamaio.hrmsbackend.business.responses.GetAllResumeResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdResumeResponse;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
 import kodlamaio.hrmsbackend.entities.concretes.Resume;
@@ -14,26 +17,28 @@ import java.util.List;
 @RequestMapping("api/resumes")
 @AllArgsConstructor
 public class ResumesController {
-    private ResumeService resumeService;
+    private final ResumeService resumeService;
 
     @GetMapping
     @CrossOrigin
-    public DataResult<List<Resume>> getAll() {
+    public DataResult<List<GetAllResumeResponse>> getAll() {
         return this.resumeService.getAll();
     }
 
     @GetMapping("getAllByApplicant_Id")
     @CrossOrigin
-    DataResult<List<Resume>> getAllByApplicant_Id(@RequestParam int id) {
+    DataResult<List<GetAllByApplicantIdResumeResponse>> getAllByApplicant_Id(@RequestParam int id) {
         return this.resumeService.getAllByApplicant_Id(id);
     }
 
     @GetMapping("{id}")
-    DataResult<Resume> getById(@PathVariable int id) {
+    @CrossOrigin
+    DataResult<GetByIdResumeResponse> getById(@PathVariable int id) {
         return this.resumeService.getById(id);
     }
 
     @PostMapping
+    @CrossOrigin
     Result add(@Valid @RequestBody Resume resume) {
         return this.resumeService.add(resume);
     }

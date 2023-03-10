@@ -1,11 +1,14 @@
 package kodlamaio.hrmsbackend.api.controllers;
 
 import kodlamaio.hrmsbackend.business.abstracts.ApplicantService;
-import kodlamaio.hrmsbackend.core.entities.User;
+import kodlamaio.hrmsbackend.business.requests.CreateApplicantRequest;
+import kodlamaio.hrmsbackend.business.responses.GetAllApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByEmailApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByUserIdApplicantResponse;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.ErrorDataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
-import kodlamaio.hrmsbackend.entities.concretes.Applicant;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,33 +27,36 @@ import java.util.Map;
 @RequestMapping("api/applicants")
 @AllArgsConstructor
 public class ApplicantsController {
-    private ApplicantService applicantService;
+    private final ApplicantService applicantService;
 
     @GetMapping
     @CrossOrigin
-    public DataResult<List<Applicant>> getAll() {
+    public DataResult<List<GetAllApplicantResponse>> getAll() {
         return this.applicantService.getAll();
     }
 
-    @GetMapping("{id}}")
+    @GetMapping("{id}")
     @CrossOrigin
-    public DataResult<Applicant> getById(@PathVariable int id) {
+    public DataResult<GetByIdApplicantResponse> getById(@PathVariable int id) {
         return this.applicantService.getById(id);
     }
 
     @GetMapping("getByUserId")
-    public DataResult<Applicant> getByUserId(@RequestParam int id) {
+    @CrossOrigin
+    public DataResult<GetByUserIdApplicantResponse> getByUserId(@RequestParam int id) {
         return this.applicantService.getByUserId(id);
     }
 
-    @PostMapping("getByEmail")
-    public DataResult<Applicant> getByUserEmail(@RequestBody User user) {
-        return this.applicantService.getByUserEmail(user.getEmail());
+    @GetMapping("getByEmail")
+    @CrossOrigin
+    public DataResult<GetByEmailApplicantResponse> getByUserEmail(String email) {
+        return this.applicantService.getByUserEmail(email);
     }
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public Result add(@Valid @RequestPart("applicant") Applicant applicant, @Nullable @RequestPart("file") MultipartFile file) throws Exception {
-        return this.applicantService.add(applicant, file);
+    @CrossOrigin
+    public Result add(@Valid @RequestPart("createApplicantRequest") CreateApplicantRequest createApplicantRequest, @Nullable @RequestPart("file") MultipartFile file) throws Exception {
+        return this.applicantService.add(createApplicantRequest, file);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

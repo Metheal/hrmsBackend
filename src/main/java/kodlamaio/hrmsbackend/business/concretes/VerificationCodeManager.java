@@ -1,25 +1,30 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
 import kodlamaio.hrmsbackend.business.abstracts.UserService;
+import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
+import kodlamaio.hrmsbackend.business.requests.VerifyApplicantRequest;
+import kodlamaio.hrmsbackend.business.requests.VerifyCorporateRequest;
+import kodlamaio.hrmsbackend.business.requests.VerifyUserRequest;
 import kodlamaio.hrmsbackend.core.entities.User;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
-import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
+import kodlamaio.hrmsbackend.dataAccess.abstracts.ApplicantDao;
+import kodlamaio.hrmsbackend.dataAccess.abstracts.CorporateDao;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.VerificationCodeDao;
+import kodlamaio.hrmsbackend.entities.concretes.Applicant;
 import kodlamaio.hrmsbackend.entities.concretes.VerificationCode;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@AllArgsConstructor
 public class VerificationCodeManager implements VerificationCodeService {
-    private VerificationCodeDao verificationCodeDao;
-    private UserService userService;
-
-    public VerificationCodeManager(VerificationCodeDao verificationCodeDao, UserService userService) {
-        this.verificationCodeDao = verificationCodeDao;
-        this.userService = userService;
-    }
+    private final VerificationCodeDao verificationCodeDao;
+    private final UserService userService;
+    private final ApplicantDao applicantDao;
+    private final CorporateDao corporateDao;
 
     @Override
     public DataResult<String> createCode(User user) {
@@ -50,12 +55,13 @@ public class VerificationCodeManager implements VerificationCodeService {
     }
 
     @Override
-    public Result verifyApplicant(User user, String code) {
-        var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(user.getId());
+    public Result verifyApplicant(VerifyApplicantRequest verifyApplicantRequest, String code) {
+        int userId = this.applicantDao.getById(verifyApplicantRequest.getId()).getUser().getId();
+        var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(userId);
         if (verificationCode == null || !verificationCode.getCode().equals(code)) {
             return new ErrorResult("Dogrulama basarisiz");
         }
-        var userToUpdate = this.userService.getById(user.getId()).getData();
+        var userToUpdate =  this.userService.getUserById(userId).getData();
         userToUpdate.setEmailVerified(true);
         userToUpdate.setActive(true);
         userService.update(userToUpdate);
@@ -64,12 +70,13 @@ public class VerificationCodeManager implements VerificationCodeService {
     }
 
     @Override
-    public Result verifyCorporate(User user, String code) {
-        var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(user.getId());
+    public Result verifyCorporate(VerifyCorporateRequest verifyCorporateRequest, String code) {
+        int userId = this.corporateDao.getById(verifyCorporateRequest.getId()).getUser().getId();
+        var verificationCode = this.verificationCodeDao.getVerificationCodeByUserId(userId);
         if (verificationCode == null || !verificationCode.getCode().equals(code)) {
             return new ErrorResult("Dogrulama basarisiz");
         }
-        var userToUpdate = this.userService.getById(user.getId()).getData();
+        var userToUpdate = this.userService.getUserById(userId).getData();
         userToUpdate.setEmailVerified(true);
         userService.update(userToUpdate);
         deleteCode(code);

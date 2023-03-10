@@ -1,113 +1,101 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
-import kodlamaio.hrmsbackend.business.abstracts.*;
+import kodlamaio.hrmsbackend.business.abstracts.ApplicantService;
+import kodlamaio.hrmsbackend.business.abstracts.EmailService;
+import kodlamaio.hrmsbackend.business.abstracts.UserService;
+import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
+import kodlamaio.hrmsbackend.business.requests.CreateApplicantRequest;
+import kodlamaio.hrmsbackend.business.requests.CreateUserRequest;
+import kodlamaio.hrmsbackend.business.responses.GetAllApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByEmailApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByUserIdApplicantResponse;
+import kodlamaio.hrmsbackend.business.rules.ApplicantBusinessRules;
 import kodlamaio.hrmsbackend.core.entities.User;
+import kodlamaio.hrmsbackend.core.utilities.mappers.ModelMapperService;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.ApplicantDao;
 import kodlamaio.hrmsbackend.entities.concretes.Applicant;
-import kodlamaio.hrmsbackend.entities.concretes.ProfilePicture;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class ApplicantManager implements ApplicantService {
-    private ApplicantDao applicantDao;
-    private UserService userService;
-    private ApplicantCheckService applicantCheckService;
-    private VerificationCodeService verificationCodeService;
-    private EmailService emailService;
-    private ProfilePictureService profilePictureService;
+    private final ApplicantDao applicantDao;
+    private final VerificationCodeService verificationCodeService;
+    private final EmailService emailService;
+    private final ModelMapperService modelMapperService;
+    private final ApplicantBusinessRules applicantBusinessRules;
+    private final UserService userService;
 
-    @Autowired
-    public ApplicantManager(ApplicantDao applicantDao, UserService userService, ApplicantCheckService applicantCheckService,
-                            VerificationCodeService verificationCodeService, EmailService emailService,
-                            ProfilePictureService profilePictureService) {
-        this.applicantDao = applicantDao;
-        this.userService = userService;
-        this.applicantCheckService = applicantCheckService;
-        this.verificationCodeService = verificationCodeService;
-        this.emailService = emailService;
-        this.profilePictureService = profilePictureService;
+    @Override
+    public DataResult<List<GetAllApplicantResponse>> getAll() {
+        List<Applicant> applicants = this.applicantDao.findAll();
+        List<GetAllApplicantResponse> applicantResponses = applicants.stream()
+                .map(applicant -> this.modelMapperService.forResponse()
+                        .map(applicant, GetAllApplicantResponse.class)).collect(Collectors.toList());
+        return new SuccessDataResult<>(applicantResponses, "Tum is arayanlar listelendi");
     }
 
     @Override
-    public DataResult<List<Applicant>> getAll() {
-        return new SuccessDataResult<>(this.applicantDao.findAll(), "Tum is arayanlar listelendi");
+    public DataResult<GetByIdApplicantResponse> getById(int id) {
+        var applicant = this.applicantDao.findById(id);
+        if (applicant.isEmpty()) {
+            return new ErrorDataResult<>("Is arayan bulunamadi!");
+        }
+
+        GetByIdApplicantResponse getByIdApplicantResponse
+                = this.modelMapperService.forResponse().map(applicant.get(), GetByIdApplicantResponse.class);
+        return new SuccessDataResult<>(getByIdApplicantResponse, "Is arayan getirildi");
     }
 
     @Override
-    public DataResult<Applicant> getById(int id) {
-        return new SuccessDataResult<>(this.applicantDao.getById(id), "Is arayan getirildi");
+    public DataResult<GetByUserIdApplicantResponse> getByUserId(int id) {
+        Applicant applicant = this.applicantDao.findByUser_Id(id);
+        if (applicant == null)
+            return new ErrorDataResult<>("Is arayan bu kullanici Id ile bulunamadi!");
+
+        GetByUserIdApplicantResponse getByUserIdApplicantResponse
+                = this.modelMapperService.forResponse().map(applicant, GetByUserIdApplicantResponse.class);
+        return new SuccessDataResult<>(getByUserIdApplicantResponse, "Is arayan kullanici Id'sine gore getirildi");
     }
 
     @Override
-    public DataResult<Applicant> getByUserId(int id) {
-        return new SuccessDataResult<>(this.applicantDao.getByUser_Id(id), "Is arayan kullanici Id'sine gore getirildi");
+    public DataResult<GetByEmailApplicantResponse> getByUserEmail(String email) {
+        Applicant applicant = this.applicantDao.getByUser_Email(email);
+        if (applicant == null)
+            return new ErrorDataResult<>("Is arayan bu email ile bulunamadi!");
+
+        GetByEmailApplicantResponse getByEmailApplicantResponse
+                = this.modelMapperService.forResponse().map(applicant, GetByEmailApplicantResponse.class);
+        return new SuccessDataResult<>(getByEmailApplicantResponse, "Is arayan email adresine gore getirildi");
     }
 
     @Override
-    public DataResult<Applicant> getByUserEmail(String email) {
-        return new SuccessDataResult<>(this.applicantDao.getByUser_Email(email), "Is arayan kullanici emailine gore getirildi");
+    public Result add(CreateApplicantRequest createApplicantRequest, @Nullable MultipartFile file) throws Exception {
+        Applicant applicant = this.modelMapperService.forRequest().map(createApplicantRequest, Applicant.class);
+        this.applicantBusinessRules.checkIfNationalIdIsUnique(createApplicantRequest.getNationalId());
+        this.applicantBusinessRules.checkIfCitizen(applicant);
+        this.applicantBusinessRules.checkIfFileProvided(applicant, file);
+        CreateUserRequest createUserRequest = this.modelMapperService.forRequest().map(createApplicantRequest, CreateUserRequest.class);
+
+        var user = this.userService.registerUserAndReturn(createUserRequest).getData();
+        applicant.setUser(user);
+        var result = this.applicantDao.save(applicant);
+        var message = sendConfirmationEmail(result.getUser());
+        return new SuccessResult(message);
     }
 
-    @Override
-    public Result add(Applicant applicant, MultipartFile file) throws Exception {
-
-        var nationalityIdUnique = nationalIdUnique(applicant);
-        if (!nationalityIdUnique.isSuccess()) {
-            return new ErrorResult(nationalityIdUnique.getMessage());
-        }
-        var checkIfCitizen = checkIfCitizen(applicant);
-        if (!checkIfCitizen.isSuccess()) {
-            return new ErrorResult(checkIfCitizen.getMessage());
-        }
-        var registerUser = registerUser(applicant);
-        if (!registerUser.isSuccess()) {
-            return new ErrorResult(registerUser.getMessage());
-        }
-
-        var result =  this.applicantDao.save(applicant);
-
-        if (file != null) {
-            uploadProfilePicture(result, file);
-        }
-        sendConfirmationEmail(result.getUser());
-        return new SuccessResult("Is arayan kaydi olusturuldu");
-    }
-
-    private Result uploadProfilePicture(Applicant applicant, MultipartFile file) throws IOException {
-        var result = new ProfilePicture();
-        result.setApplicant(applicant);
-        return this.profilePictureService.add(result, file);
-    }
-
-    private Result registerUser(Applicant applicant) throws InterruptedException {
-        return this.userService.add(applicant.getUser());
-    }
-
-    private Result nationalIdUnique(Applicant applicant) {
-        var result = applicantDao.getByNationalId(applicant.getNationalId());
-        if (result != null) {
-            return new ErrorResult("Bu kimlik numarasiyla uye olunmus");
-        }
-        return new SuccessResult();
-    }
-
-    private Result checkIfCitizen(Applicant applicant) throws Exception {
-        var result = this.applicantCheckService.checkIfCitizen(applicant);
-        if (!result) {
-            return new ErrorResult("Girilen kimlik bilgileri gecerli degil");
-        }
-        return new SuccessResult();
-    }
-
-    private void sendConfirmationEmail(User user) {
-        this.emailService.sendEmail(user.getEmail(),
-                "E-posta adresinizi dogrulamak ve kaydinizi tamamlamak icin kodu ilgili yere girin: "
-                        + this.verificationCodeService.createCode(user).getData());
+    private String sendConfirmationEmail(User user) {
+        var code = this.verificationCodeService.createCode(user).getData();
+        var message = "E-posta adresinizi dogrulamak ve kaydinizi tamamlamak icin kodu ilgili yere girin: ";
+        this.emailService.sendEmail(user.getEmail(), message + code);
+        return message + code;
     }
 }

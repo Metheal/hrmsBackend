@@ -1,43 +1,30 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
 import kodlamaio.hrmsbackend.business.abstracts.JobPostingService;
+import kodlamaio.hrmsbackend.business.requests.CreateJobPostingRequest;
+import kodlamaio.hrmsbackend.business.responses.GetAllJobPostingResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdJobPosting;
+import kodlamaio.hrmsbackend.core.utilities.mappers.ModelMapperService;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.JobPostingDao;
 import kodlamaio.hrmsbackend.entities.concretes.JobPosting;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class JobPostingManager implements JobPostingService {
-    private JobPostingDao jobPostingDao;
-
-    @Autowired
-    public JobPostingManager(JobPostingDao jobPostingDao) {
-        this.jobPostingDao = jobPostingDao;
-    }
+    private final JobPostingDao jobPostingDao;
+    private final ModelMapperService modelMapperService;
 
     @Override
-    public Result add(JobPosting jobPosting) {
-        var checkIfJobTitleEmpty = checkIfJobTitleEmpty(jobPosting);
-        if (!checkIfJobTitleEmpty.isSuccess()) {
-            return new ErrorResult(checkIfJobTitleEmpty.getMessage());
-        }
-        var checkIfDescriptionEmpty = checkIfDescriptionEmpty(jobPosting);
-        if (!checkIfDescriptionEmpty.isSuccess()) {
-            return new ErrorResult(checkIfDescriptionEmpty.getMessage());
-        }
-        var checkIfCityEmpty = checkIfCityEmpty(jobPosting);
-        if (!checkIfCityEmpty.isSuccess()) {
-            return new ErrorResult(checkIfCityEmpty.getMessage());
-        }
-        var checkIfOpenPositionsEmpty = checkIfOpenPositionsEmpty(jobPosting);
-        if (!checkIfOpenPositionsEmpty.isSuccess()) {
-            return new ErrorResult(checkIfCityEmpty.getMessage());
-        }
+    public Result add(CreateJobPostingRequest createJobPostingRequest) {
+        JobPosting jobPosting = this.modelMapperService.forRequest().map(createJobPostingRequest, JobPosting.class);
         jobPosting.setReleaseDate(LocalDate.now());
         this.jobPostingDao.save(jobPosting);
         return new SuccessResult("Is ilani eklendi");
@@ -50,8 +37,10 @@ public class JobPostingManager implements JobPostingService {
     }
 
     @Override
-    public DataResult<List<JobPosting>> getAllByActiveIsTrue() {
-        return new SuccessDataResult<>(this.jobPostingDao.getAllByActiveIsTrue(), "Tum aktif is ilanlari listelendi");
+    public DataResult<List<GetAllJobPostingResponse>> getAllByActiveIsTrue() {
+        List<JobPosting> jobPostings = this.jobPostingDao.getAllByActiveIsTrue();
+        List<GetAllJobPostingResponse> getAllJobPostingResponses = jobPostings.stream().map(jobPosting -> this.modelMapperService.forResponse().map(jobPosting, GetAllJobPostingResponse.class)).collect(Collectors.toList());
+        return new SuccessDataResult<>(getAllJobPostingResponses, "Tum aktif is ilanlari listelendi");
     }
 
     @Override
@@ -74,8 +63,13 @@ public class JobPostingManager implements JobPostingService {
     }
 
     @Override
-    public DataResult<JobPosting> getById(int id) {
-        return new SuccessDataResult<>(this.jobPostingDao.findById(id).get());
+    public DataResult<GetByIdJobPosting> getById(int id) {
+        var jobPosting = this.jobPostingDao.findById(id);
+        if (jobPosting.isEmpty())
+            return new ErrorDataResult<>("Is ilani bulunamadi");
+
+        GetByIdJobPosting getByIdJobPosting = this.modelMapperService.forResponse().map(jobPosting, GetByIdJobPosting.class);
+        return new SuccessDataResult<>(getByIdJobPosting, "Is ilani Id'sine gore getirildi");
     }
 
     @Override
@@ -84,37 +78,5 @@ public class JobPostingManager implements JobPostingService {
         jobPostingToUpdate.setActive(active);
         jobPostingDao.save(jobPostingToUpdate);
         return new SuccessResult("Basariyla guncellendi");
-    }
-
-    private Result checkIfJobTitleEmpty(JobPosting jobPosting) {
-        var result = jobPosting.getJobTitle();
-        if (result == null) {
-            return new ErrorResult("Bir is pozisyonu secmeniz gerekiyor");
-        }
-        return new SuccessResult();
-    }
-
-    private Result checkIfDescriptionEmpty(JobPosting jobPosting) {
-        var result = jobPosting.getDescription();
-        if (result.isEmpty()) {
-            return new ErrorResult("Bir aciklama yazmaniz gerekiyor");
-        }
-        return new SuccessResult();
-    }
-
-    private Result checkIfCityEmpty(JobPosting jobPosting) {
-        var result = jobPosting.getCity();
-        if (result == null) {
-            return new ErrorResult("Bir sehir secmeniz gerekiyor");
-        }
-        return new SuccessResult();
-    }
-
-    private Result checkIfOpenPositionsEmpty(JobPosting jobPosting) {
-        var result = jobPosting.getOpenPositions();
-        if (result <= 0) {
-            return new ErrorResult("Acik pozisyon sayisini girmeniz gerekiyor");
-        }
-        return new SuccessResult();
     }
 }

@@ -44,8 +44,8 @@ public class JobPosting {
     @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
 
-    @Column(name = "dead_line", nullable = false)
-    private LocalDate deadLine;
+    @Column(name = "deadline", nullable = false)
+    private LocalDate deadline;
 
     @Column(name = "active", nullable = false)
     private boolean active;

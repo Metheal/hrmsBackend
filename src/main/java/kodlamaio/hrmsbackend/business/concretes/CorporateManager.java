@@ -1,68 +1,89 @@
 package kodlamaio.hrmsbackend.business.concretes;
 
 import kodlamaio.hrmsbackend.business.abstracts.CorporateService;
-import kodlamaio.hrmsbackend.business.abstracts.EmailService;
 import kodlamaio.hrmsbackend.business.abstracts.UserService;
 import kodlamaio.hrmsbackend.business.abstracts.VerificationCodeService;
+import kodlamaio.hrmsbackend.business.requests.CreateCorporateRequest;
+import kodlamaio.hrmsbackend.business.requests.CreateUserRequest;
+import kodlamaio.hrmsbackend.business.responses.GetAllCorporateResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByEmailCorporateResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdCorporateResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByUserIdCorporateResponse;
+import kodlamaio.hrmsbackend.business.rules.CorporateBusinessRules;
 import kodlamaio.hrmsbackend.core.entities.User;
+import kodlamaio.hrmsbackend.core.utilities.mappers.ModelMapperService;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.CorporateDao;
 import kodlamaio.hrmsbackend.entities.concretes.Corporate;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class CorporateManager implements CorporateService {
+    private final ModelMapperService modelMapperService;
+    private final CorporateDao corporateDao;
+    private final UserService userService;
+    private final VerificationCodeService verificationCodeService;
+    private final CorporateBusinessRules corporateBusinessRules;
 
-    private CorporateDao corporateDao;
-    private UserService userService;
-    private VerificationCodeService verificationCodeService;
-    private EmailService emailService;
-
-    @Autowired
-    public CorporateManager(CorporateDao corporateDao, UserService userService,
-                            VerificationCodeService verificationCodeService, EmailService emailService) {
-        this.corporateDao = corporateDao;
-        this.userService = userService;
-        this.verificationCodeService = verificationCodeService;
-        this.emailService = emailService;
+    @Override
+    public DataResult<List<GetAllCorporateResponse>> getAll() {
+        List<Corporate> corporates = this.corporateDao.findAll();
+        List<GetAllCorporateResponse> getAllCorporateResponseList = corporates.stream()
+                .map(corporate -> this.modelMapperService.forResponse()
+                        .map(corporate, GetAllCorporateResponse.class)).collect(Collectors.toList());
+        return new SuccessDataResult<>(getAllCorporateResponseList, "Tum isverenler listelendi");
     }
 
     @Override
-    public DataResult<List<Corporate>> getAll() {
-        return new SuccessDataResult<>(this.corporateDao.findAll(), "Tum isverenler listelendi");
+    public DataResult<GetByIdCorporateResponse> getById(int id) {
+        var corporate = this.corporateDao.findById(id);
+        if (corporate.isEmpty())
+            return new ErrorDataResult<>("Isveren bulunamadi");
+
+        GetByIdCorporateResponse getByIdCorporateResponse = this.modelMapperService.forResponse().map(corporate.get(), GetByIdCorporateResponse.class);
+        return new SuccessDataResult<>(getByIdCorporateResponse, "Isveren getirildi");
     }
 
     @Override
-    public DataResult<Corporate> getById(int id) {
-        return new SuccessDataResult<>(this.corporateDao.findById(id).get(), "Isveren getirildi");
+    public DataResult<GetByUserIdCorporateResponse> getByUserId(int id) {
+        Corporate corporate = this.corporateDao.getByUser_Id(id);
+        if (corporate == null)
+            return new ErrorDataResult<>("Is veren bu kullanici Id ile bulunamadi!");
+
+        GetByUserIdCorporateResponse getByUserIdCorporateResponse
+                = this.modelMapperService.forResponse().map(corporate, GetByUserIdCorporateResponse.class);
+        return new SuccessDataResult<>(getByUserIdCorporateResponse, "Isveren Kullanici Id'sine gore getirildi");
     }
 
     @Override
-    public DataResult<Corporate> getByUserId(int id) {
-        return new SuccessDataResult<>(this.corporateDao.getByUser_Id(id), "Isveren Kullanici Id'sine gore getirildi");
+    public DataResult<GetByEmailCorporateResponse> getByUserEmail(String email) {
+        Corporate corporate = this.corporateDao.getByUser_Email(email);
+        if (corporate == null)
+            return new ErrorDataResult<>("Is veren bu email ile bulunamadi!");
+
+        GetByEmailCorporateResponse getByEmailCorporateResponse
+                = this.modelMapperService.forResponse().map(corporate, GetByEmailCorporateResponse.class);
+        return new SuccessDataResult<>(getByEmailCorporateResponse, "Isveren kullanici emailine gore getirildi");
     }
 
     @Override
-    public DataResult<Corporate> getByUserEmail(String email) {
-        return new SuccessDataResult<>(this.corporateDao.getByUser_Email(email), "Isveren kullanici emailine gore getirildi");
-    }
+    public Result add(CreateCorporateRequest createCorporateRequest) throws InterruptedException {
+        Corporate corporate = this.modelMapperService.forRequest().map(createCorporateRequest, Corporate.class);
+        CreateUserRequest createUserRequest = this.modelMapperService.forRequest().map(createCorporateRequest, CreateUserRequest.class);
+        corporateBusinessRules.checkIfEmailMatchesDomain(createCorporateRequest);
+        corporateBusinessRules.checkIfCompanyNameIsUnique(createCorporateRequest);
 
-    @Override
-    public Result add(Corporate corporate) throws InterruptedException {
-        var checkIfEmailMatchesDomain = checkIfEmailMatchesDomain(corporate);
-        if (!checkIfEmailMatchesDomain.isSuccess()) {
-            return new ErrorResult(checkIfEmailMatchesDomain.getMessage());
-        }
-        var registerUser = registerUser(corporate);
-        if (!registerUser.isSuccess()) {
-            return new ErrorResult(registerUser.getMessage());
-        }
+        var registerUser = registerUser(createUserRequest);
+        corporate.setUser(registerUser.getData());
+
         this.corporateDao.save(corporate);
-        sendConfirmationEmail(corporate.getUser());
-        return new SuccessResult("Isveren kaydi olusturuldu");
+        this.verificationCodeService.createCode(corporate.getUser());
+        return new SuccessResult("Sirket basariyla kaydedildi");
     }
 
     @Override
@@ -73,23 +94,7 @@ public class CorporateManager implements CorporateService {
         return new SuccessResult("Basariyla guncellendi");
     }
 
-    private Result checkIfEmailMatchesDomain(Corporate corporate) {
-        var domainFromEmail = corporate.getUser().getEmail().split("@")[1];
-        var result = corporate.getWebsiteUrl().contains(domainFromEmail);
-        if (!result) {
-            return new ErrorResult("Email adresi ile web sitesi eslesmiyor");
-        }
-        return new SuccessResult();
+    private DataResult<User> registerUser(CreateUserRequest createUserRequest) {
+        return this.userService.registerUserAndReturn(createUserRequest);
     }
-
-    private Result registerUser(Corporate corporate) throws InterruptedException {
-        return this.userService.add(corporate.getUser());
-    }
-
-    private void sendConfirmationEmail(User user) {
-        this.emailService.sendEmail(user.getEmail(), "E-posta adresinizi dogrulamak icin kodu ilgili yere girin: "
-                + this.verificationCodeService.createCode(user).getData());
-    }
-
-
 }

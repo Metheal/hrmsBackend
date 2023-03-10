@@ -1,20 +1,25 @@
 package kodlamaio.hrmsbackend.business.abstracts;
 
+import kodlamaio.hrmsbackend.business.requests.CreateApplicantRequest;
+import kodlamaio.hrmsbackend.business.responses.GetAllApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByIdApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByEmailApplicantResponse;
+import kodlamaio.hrmsbackend.business.responses.GetByUserIdApplicantResponse;
 import kodlamaio.hrmsbackend.core.utilities.results.DataResult;
 import kodlamaio.hrmsbackend.core.utilities.results.Result;
-import kodlamaio.hrmsbackend.entities.concretes.Applicant;
+import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface ApplicantService {
-    DataResult<List<Applicant>> getAll();
+    DataResult<List<GetAllApplicantResponse>> getAll();
 
-    DataResult<Applicant> getById(int id);
+    DataResult<GetByIdApplicantResponse> getById(int id);
 
-    DataResult<Applicant> getByUserId(int id);
+    DataResult<GetByUserIdApplicantResponse> getByUserId(int id);
 
-    DataResult<Applicant> getByUserEmail(String email);
+    DataResult<GetByEmailApplicantResponse> getByUserEmail(String email);
 
-    Result add(Applicant applicant, MultipartFile file) throws Exception;
+    Result add(CreateApplicantRequest createApplicantRequest, @Nullable MultipartFile file) throws Exception;
 }

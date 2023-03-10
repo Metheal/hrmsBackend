@@ -4,19 +4,15 @@ import kodlamaio.hrmsbackend.business.abstracts.CityService;
 import kodlamaio.hrmsbackend.core.utilities.results.*;
 import kodlamaio.hrmsbackend.dataAccess.abstracts.CityDao;
 import kodlamaio.hrmsbackend.entities.concretes.City;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class CityManager implements CityService {
-    private CityDao cityDao;
-
-    @Autowired
-    public CityManager(CityDao cityDao) {
-        this.cityDao = cityDao;
-    }
+    private final CityDao cityDao;
 
     @Override
     public DataResult<City> getById(int id) {

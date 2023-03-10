@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface JobTitleDao extends JpaRepository<JobTitle, Integer> {
     JobTitle getByName(String name);
+    boolean existsByName(String name);
 }
